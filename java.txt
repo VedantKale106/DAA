@@ -1,0 +1,506 @@
+assignment : 1
+
+import java.math.BigInteger;
+import java.util.Scanner;
+
+public class Assign1_DAA {
+
+	public static BigInteger karatsubaMultiply(BigInteger x, BigInteger y) {
+
+		if (x.compareTo(BigInteger.TEN) < 0 || y.compareTo(BigInteger.TEN) < 0) {
+			return x.multiply(y);
+		}
+
+		int length = Math.max(x.toString().length(), y.toString().length());
+		int halfLength = length / 2;
+
+		BigInteger tenPowerHalf = BigInteger.TEN.pow(halfLength);
+		BigInteger max1 = x.divide(tenPowerHalf);
+		BigInteger min1 = x.mod(tenPowerHalf);
+		BigInteger max2 = y.divide(tenPowerHalf);
+		BigInteger min2 = y.mod(tenPowerHalf);
+
+		// ac = max1 * max2
+		BigInteger ac = karatsubaMultiply(max1, max2);
+
+		// bd = min1 * min2
+		BigInteger bd = karatsubaMultiply(min1, min2);
+
+		// (a+b)(c+d) - ac - bd
+		BigInteger ab_cd = karatsubaMultiply(max1.add(min1), max2.add(min2)).subtract(ac).subtract(bd);
+
+		// the results
+		return ac.multiply(BigInteger.TEN.pow(2 * halfLength)).add(ab_cd.multiply(BigInteger.TEN.pow(halfLength)))
+				.add(bd);
+	}
+
+	public static BigInteger karatsubaSquare(BigInteger x) {
+		return karatsubaMultiply(x, x);
+	}
+
+	public static void main(String[] args) {
+		Scanner input = new Scanner(System.in);
+		System.out.print("Enter number :");
+		BigInteger ans = karatsubaSquare(new BigInteger(input.nextLine()));
+//        BigInteger num = new BigInteger("13243546569807654356"); 
+//        BigInteger ans= karatsubaSquare(num);
+
+		System.out.println("Square of is " + ans);
+	}
+}
+
+Output :
+Enter number :70320041003200522107
+Square is 4944908166691802691581536115757395719449
+----------------------------------------------------------------------
+
+
+assignment no : 2
+
+Code:
+import java.util.*;
+public class Assign2_DAA {
+        static int maxDeadline = 0;
+    class Job {
+        int jobId;
+        int deadLine;
+        int profit;
+        Scanner input = new Scanner(System.in);
+        public Job() {
+            this.jobId = 0;
+            this.deadLine = 0;
+            this.profit = 0;		}
+        public void addTask(int id) {
+            this.jobId = id;
+            System.out.print("Enter deadline: ");
+            this.deadLine = input.nextInt();
+            maxDeadline = Math.max(maxDeadline, this.deadLine);
+            System.out.print("Enter profit: ");
+            this.profit = input.nextInt();        }
+        public void printTasks() {
+            System.out.println("Job ID: " + this.jobId + "\nDeadline: " + this.deadLine + "\nProfit: " + this.profit);
+            System.out.println();        }	    }
+    public static void main(String[] args) {
+        Scanner input = new Scanner(System.in);
+        System.out.print("Enter number of tasks: ");
+        int taskNums = input.nextInt();
+        Assign2_DAA assign = new Assign2_DAA();
+
+        Job[] job = new Job[taskNums];
+        for (int i = 0; i < taskNums; i++) {
+            job[i] = assign.new Job();
+            System.out.println("Enter Details of Task " + (i + 1) + ":");
+            job[i].addTask(i + 1);        }
+        int slots[] = new int[maxDeadline];
+        for (int i = 0; i < slots.length; i++) {
+            slots[i] = 0;        }
+        System.out.println("Tasks:");
+        for (int i = 0; i < taskNums; i++) {
+            job[i].printTasks();        }
+System.out.println("_______________________________________________________________");        Arrays.sort(job, (a, b) -> b.profit - a.profit);
+        int counter = 0, totalProfit = 0;
+        for (int i = 0; i < taskNums && counter < maxDeadline; i++) {
+            for (int j = job[i].deadLine - 1; j >= 0; j--) {
+                if (slots[j] == 0) {
+                    slots[j] = job[i].jobId;  
+                    totalProfit += job[i].profit; 
+                    counter++;
+                    break;                }            }        }
+        //System.out.println("Tasks:");
+       // for (int i = 0; i < taskNums; i++) {
+   //         job[i].printTasks();        }
+//System.out.println("______________________________________________________________);
+        System.out.println("Optimal solution:");
+        for (int i = 0; i < slots.length; i++) {
+            System.out.print("ID: " + slots[i] + "  ");        }
+        System.out.println("\nMaximum Profit: " + totalProfit);    }		}
+----------------------------------------------------------------------
+
+assignment no : 3
+
+
+Code :
+import java.util.Scanner;
+
+public class Assignment_3 {
+    static final int INF = 99999;
+
+    public static void printPath(int[][] predecessor, int start, int end) {
+        if (start == end) {
+            System.out.print(start + " ");
+        } else if (predecessor[start][end] == -1) {
+            System.out.print("No path");
+        } else {
+            printPath(predecessor, start, predecessor[start][end]);
+            System.out.print(end + " ");
+        }
+    }
+
+    public static void floydWarshall(int[][] costMatrix, int numNodes) {
+        int[][] dist = new int[numNodes][numNodes];
+        int[][] predecessor = new int[numNodes][numNodes];
+
+        for (int i = 0; i < numNodes; i++) {
+            for (int j = 0; j < numNodes; j++) {
+                if (costMatrix[i][j] == INF || i == j) {
+                    predecessor[i][j] = -1;
+                } else {
+                    predecessor[i][j] = i;
+                }
+                dist[i][j] = costMatrix[i][j];
+            }
+        }
+
+        for (int k = 0; k < numNodes; k++) {
+            for (int i = 0; i < numNodes; i++) {
+                for (int j = 0; j < numNodes; j++) {
+                    if (dist[i][k] != INF && dist[k][j] != INF && dist[i][j] > dist[i][k] + dist[k][j]) {
+                        dist[i][j] = dist[i][k] + dist[k][j];
+                        predecessor[i][j] = predecessor[k][j];
+                    }
+                }
+            }
+        }
+
+        System.out.println("The shortest distance matrix is: ");
+        for (int i = 0; i < numNodes; i++) {
+            for (int j = 0; j < numNodes; j++) {
+                if (dist[i][j] == INF) {
+                    System.out.print("INF ");
+                } else {
+                    System.out.print(dist[i][j] + " ");
+                }
+            }
+            System.out.println();
+        }
+
+        System.out.println("\nThe shortest paths are:");
+        for (int i = 0; i < numNodes; i++) {
+            for (int j = 0; j < numNodes; j++) {
+                if (i != j && dist[i][j] != INF) {
+                    System.out.print(i + " to " + j + " ---> ");
+                    printPath(predecessor, i, j);
+                    System.out.println();
+                }
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Enter the number of nodes: ");
+        int numNodes = scanner.nextInt();
+
+        int[][] costMatrix = new int[numNodes][numNodes];
+
+        System.out.println("Enter the adjacency matrix (use -1 for no direct path): ");
+        for (int i = 0; i < numNodes; i++) {
+            for (int j = 0; j < numNodes; j++) {
+                costMatrix[i][j] = scanner.nextInt();
+                if (costMatrix[i][j] == -1) {
+                    costMatrix[i][j] = INF;
+                }
+            }
+        }
+
+        floydWarshall(costMatrix, numNodes);
+    }
+}
+
+
+
+Output :
+Enter the number of nodes: 
+4
+Enter the adjacency matrix (use -1 for no direct path): 
+0 3 -1-1  7
+8 0 2 -1
+5 -1 0 1
+2 -1 -1 0
+The shortest distance matrix is: 
+0 3 5 6 
+5 0 2 3 
+3 6 0 1 
+2 5 7 0 
+
+The shortest paths are:
+0 to 1 ---> 0 1 
+0 to 2 ---> 0 1 2 
+0 to 3 ---> 0 1 2 3 
+1 to 0 ---> 1 2 3 0 
+1 to 2 ---> 1 2 
+1 to 3 ---> 1 2 3 
+2 to 0 ---> 2 3 0 
+2 to 1 ---> 2 3 0 1 
+2 to 3 ---> 2 3 
+3 to 0 ---> 3 0 
+3 to 1 ---> 3 0 1 
+3 to 2 ---> 3 0 1 2
+
+----------------------------------------------------------------------
+
+
+assignment no 4
+
+Code:
+import java.util.*;
+public class Assign_DAA_4_1 {
+    static class Edge {
+        int targetNode;
+        int travelTime;
+        Edge(int targetNode, int travelTime) {
+            this.targetNode = targetNode;
+            this.travelTime = travelTime;
+        }    }
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter the number of nodes (N): ");
+        int N = scanner.nextInt();
+        System.out.print("Enter the number of edges (M): ");
+        int M = scanner.nextInt();
+        System.out.print("Enter the starting node (K): ");
+        int K = scanner.nextInt();
+        int[][] matrix = new int[N + 1][N + 1];
+        for (int[] row : matrix) {
+            Arrays.fill(row, Integer.MAX_VALUE);
+        }
+        for (int i = 1; i <= N; i++) {
+            matrix[i][i] = 0; 
+        }
+        System.out.println("Enter the edges (u v w): ");
+        for (int i = 0; i < M; i++) {
+            int u = scanner.nextInt();
+            int v = scanner.nextInt();
+            int w = scanner.nextInt();
+            matrix[u][v] = w;
+        }
+        // Display matrix
+        System.out.println("Adjacency Matrix:");
+        for (int i = 1; i <= N; i++) {
+            for (int j = 1; j <= N; j++) {
+                if (matrix[i][j] == Integer.MAX_VALUE) {
+                    System.out.print("INF ");
+                } else {
+                    System.out.print(matrix[i][j] + " ");
+                }            }
+            System.out.println();        }
+        // Calculate the network delay time and paths
+        int[] predecessors = new int[N + 1];
+        int[] distances = new int[N + 1];
+        int result = calculateNetworkDelayTime(matrix, N, K, predecessors, distances);
+        if (result == -1) {
+            System.out.println("Not all nodes can receive the signal.");
+        } else {
+            System.out.println("The time taken for the signal to travel from node " + K + " to all nodes is: " + result);
+            // Display the path and minimum cost
+            for (int i = 1; i <= N; i++) {
+                if (i != K) {
+                    System.out.print("Path from " + K + " to " + i + ": ");
+                    printPath(predecessors, i);
+                    System.out.println(" with minimum cost: " + distances[i]);
+                }            }        }    }
+    public static int calculateNetworkDelayTime(int[][] matrix, int N, int K, int[] predecessors, int[] distances) {
+        Arrays.fill(distances, Integer.MAX_VALUE);
+        distances[K] = 0;
+        Arrays.fill(predecessors, -1);
+        predecessors[K] = K;
+        PriorityQueue<Edge> priorityQueue = new PriorityQueue<>(Comparator.comparingInt(edge -> edge.travelTime));
+        priorityQueue.add(new Edge(K, 0));
+        while (!priorityQueue.isEmpty()) {
+            Edge current = priorityQueue.poll();
+            int currentNode = current.targetNode;
+            int currentTime = current.travelTime;
+            for (int v = 1; v <= N; v++) {
+                if (matrix[currentNode][v] != Integer.MAX_VALUE) {
+                    int newTime = currentTime + matrix[currentNode][v];
+                    if (newTime < distances[v]) {
+                        distances[v] = newTime;
+                        predecessors[v] = currentNode;
+                        priorityQueue.add(new Edge(v, newTime));
+                    }                }            }        }
+        int maxTime = 0;
+        for (int i = 1; i <= N; i++) {
+            if (distances[i] == Integer.MAX_VALUE) {
+                return -1; // If any node is unreachable            }
+            maxTime = Math.max(maxTime, distances[i]);        }
+        return maxTime;
+    }
+    public static void printPath(int[] predecessors, int node) {
+        if (predecessors[node] == -1) {
+            System.out.print("No path");
+            return;
+        }
+        List<Integer> path = new ArrayList<>();
+        while (predecessors[node] != node) {
+            path.add(node);
+            node = predecessors[node];
+        }
+        path.add(node);
+        Collections.reverse(path);
+        for (int i = 0; i < path.size(); i++) {
+            System.out.print(path.get(i));
+            if (i < path.size() - 1) {
+                System.out.print(" -> ");
+            }        }    }		}
+Output :
+Enter the number of nodes (N): 4
+Enter the number of edges (M): 4
+Enter the starting node (K): 1
+Enter the edges (u v w): 
+1 3 4
+1 2 1
+3 4 1
+2 3 2
+Adjacency Matrix:
+0 1 4 INF 
+INF 0 2 INF 
+INF INF 0 1 
+INF INF INF 0 
+The time taken for the signal to travel from node 1 to all nodes is: 4
+Path from 1 to 2: 1 -> 2 with minimum cost: 1
+Path from 1 to 3: 1 -> 2 -> 3 with minimum cost: 3
+Path from 1 to 4: 1 -> 2 -> 3 -> 4 with minimum cost: 4
+----------------------------------------------------------------------
+
+assignment no : 5
+
+Code :
+import java.util.*;
+
+public class Assignment_5{
+    static int N;
+    static int[][] sol;  
+    static boolean valid(int x,int y){
+        return (x>=0 && x<N && y>=0 && y<N && sol[x][y]==-1);
+    }
+
+    static void display() {
+        System.out.println("The possible solution: ");
+        for(int x=0;x<N;x++){
+            for(int y=0;y<N;y++) System.out.printf("%3d ", sol[x][y]);            
+            System.out.println();
+        }
+    }
+
+    static boolean ktour(int x,int y,int move,int[] xmov,int[] ymov){
+        int nextx,nexty;
+        if(move==N*N) return true;        
+        for (int k=0;k<8;k++){ 
+            nextx=x+xmov[k];
+            nexty=y+ymov[k];
+            if(valid(nextx,nexty)){
+                sol[nextx][nexty]=move;
+                if(ktour(nextx,nexty,move+1,xmov,ymov)) return true;
+                else sol[nextx][nexty] = -1;                
+            }
+        }
+        return false;
+    }
+
+    static boolean compute(int startx,int starty) {
+        sol=new int[N][N]; 
+        for(int[] row:sol) Arrays.fill(row,-1);        
+        int[] xmov={2,1,-1,-2,-2,-1,1,2};
+        int[] ymov={1,2,2,1,-1,-2,-2,-1};
+        sol[startx][starty]=0;
+        if(!ktour(startx,starty,1,xmov,ymov)){
+            System.out.println("Solution does not exist");
+            return false;
+        }else display();        
+        return true;
+    }
+
+    public static void main(String[] args) {
+        Scanner sc=new Scanner(System.in);
+        System.out.print("Enter chess size: ");
+        N=sc.nextInt();
+        System.out.print("Enter x position (0 to "+(N-1)+"): ");
+        int startx=sc.nextInt();
+        System.out.print("Enter y position (0 to "+(N-1)+"): ");
+        int starty=sc.nextInt();        
+        if(startx>=0 && startx<N && starty>=0 && starty<N) compute(startx,starty);
+        else System.out.println("Invalid starting position.");        
+    }
+}
+
+
+----------------------------------------------------------------------
+
+assignment no 6
+
+Code:
+import java.util.Arrays;
+import java.util.Scanner;
+public class Main {
+    static int N; 
+    static int minCost = Integer.MAX_VALUE; 
+    static int[] bestAssignment; 
+    static int calculateCost(int[][] costMatrix, int[] assignment) {
+        int totalCost = 0;
+        for (int i = 0; i < N; i++) {
+            totalCost += costMatrix[i][assignment[i]];
+        }
+        return totalCost;
+    }
+    static void assignClubs(int[][] costMatrix) {
+        int[] currentAssignment = new int[N]; 
+        boolean[] clubAssigned = new boolean[N]; 
+        branchAndBound(costMatrix, currentAssignment, clubAssigned, 0, 0);
+        System.out.println("Best Assignment: " + Arrays.toString(bestAssignment));
+        System.out.println("Minimum Cost: " + minCost);
+    }
+    static void branchAndBound(int[][] costMatrix, int[] currentAssignment, boolean[] clubAssigned, int student, int currentCost) {
+        if (student == N) {
+            if (currentCost < minCost) {
+                minCost = currentCost;
+                System.arraycopy(currentAssignment, 0, bestAssignment, 0, N);
+            }
+            return;
+        }
+        for (int club = 0; club < N; club++) {
+            if (!clubAssigned[club]) {
+                currentAssignment[student] = club; 
+                int newCost = currentCost + costMatrix[student][club]; 
+                if (newCost < minCost) {
+                    clubAssigned[club] = true; 
+                    branchAndBound(costMatrix, currentAssignment, clubAssigned, student + 1, newCost);
+                    clubAssigned[club] = false; 
+                }
+            }
+        }
+    }
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Enter the number of students/clubs: ");
+        N = scanner.nextInt();
+        bestAssignment = new int[N]; 
+        int[][] costMatrix = new int[N][N];
+        System.out.println("Enter the cost matrix (" + N + "x" + N + "): ");
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                System.out.print("Cost of assigning student " + (i + 1) + " to club " + (j + 1) + ": ");
+                costMatrix[i][j] = scanner.nextInt();
+            }
+       }
+        assignClubs(costMatrix);
+        scanner.close();
+    }
+}
+
+
+Output:
+Enter the number of students/clubs: 
+3
+Enter the cost matrix (3x3): 
+Cost of assigning student 1 to club 1: 3
+Cost of assigning student 1 to club 2: 2
+Cost of assigning student 1 to club 3: 4
+Cost of assigning student 2 to club 1: 6
+Cost of assigning student 2 to club 2: 7
+Cost of assigning student 2 to club 3: 8
+Cost of assigning student 3 to club 1: 5
+Cost of assigning student 3 to club 2: 4
+Cost of assigning student 3 to club 3: 8
+Best Assignment: [2, 0, 1]
+Minimum Cost: 14
