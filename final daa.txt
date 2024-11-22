@@ -1,0 +1,344 @@
+1. Karatsuba --
+
+print("This is a demonstration of Karatsuba's Algorithm")
+
+def get_valid_number():
+    while True:
+        number = input("Enter a 20-digit number: ")
+        if len(number) == 20 and number.isdigit():
+            return int(number)
+        else:
+            print("Invalid input. Please enter exactly 20 digits.")
+
+# Get a valid 20-digit number from the user
+x = get_valid_number()
+
+def mul(x, y):
+    if x < 10 or y < 10:
+        return x * y
+
+    n = max(len(str(x)), len(str(y)))
+    m = n // 2
+
+    a = x // 10**m
+    b = x % 10**m  
+    c = y // 10**m  
+    d = y % 10**m
+
+    ac = mul(a, c)
+    bd = mul(b, d)
+    ad_bc = mul(a + b, c + d) - ac - bd
+
+    return ac * 10**(2 * m) + (ad_bc * 10**m) + bd
+
+# Calculate the square of the number
+result = mul(x, x)
+print("The multiplication is", result)
+
+
+
+
+---------------------------------------------------------------------------------------------------
+
+2. Job Scheduling --
+
+def job(tasks, n):
+    # Sort by descending order
+    tasks.sort(key = lambda x: x[0], reverse = True)
+    #print(tasks)
+    
+    # Finding max deadline
+    max_deadline = max(task[1] for task in tasks)
+    #print(max_deadline)
+    
+    # Initializing time slots
+    time_slots = [-1] * (max_deadline+1)
+    #print(time_slots)
+    
+    total_profit = 0
+    scheduled_tasks = []    
+    
+    # Scheduling
+    for profit, deadline,taskid in tasks:
+        for t in range(deadline, 0, -1):
+            if time_slots[t] == -1:
+                time_slots[t] = profit
+                total_profit += profit
+                scheduled_tasks.append((profit,t,taskid))
+                break
+    
+    return total_profit, scheduled_tasks
+    
+    
+    
+n = int(input("Enter the No. of tasks: "))
+
+tasks = []
+
+print("Enter the profit and deadline :\n")
+for i in range(n):
+    print("Enter for ", i+1," Job")
+    profit = int(input("Enter the Profit : "))
+    deadline = int(input("Enter the Deadline : "))
+    tasks.append((profit,deadline,i+1))
+
+
+    
+#tasks = [(35, 3), (20, 2), (15, 3), (10, 1), (30, 4), (25, 4)]
+
+p, st = job(tasks, n)
+     
+print("the maximum profit :",p)
+print("the task id is :")
+for p,d,t in st:
+    print(t, end =" ")
+
+
+
+---------------------------------------------------------------------------------------------------
+ 3. Floyd- Warshall --
+
+def floyd(n, m, connections):
+    INF = 9999
+    
+    # Initialize dist matrix
+    dist = [[INF] * n for _ in range(n)]
+    
+    # Set the diagonal to 0
+    for i in range(n):
+        dist[i][i] = 0
+       
+    # Updating the Distance matrix 
+    for u,v,w in connections:
+        dist[u-1][v-1] = w
+        dist[v-1][u-1] = w
+    
+    print("\nAdjancency Matrix Before Algorithm")  
+    for row in dist:
+        for i in row:
+            print(i,end = " ")
+        print() 
+ 
+    # Applying Formula
+    for k in range(n):
+        for i in range(n):
+            for j in range(n):
+                dist[i][j] = min(dist[i][j] , dist[i][k]+dist[k][j])
+    return dist
+    
+
+
+n = int(input("Enter No. of Offices: "))
+m = int(input("Enter No. of connections: "))
+              
+print("Enter the connections in the format (City 1, City 2, Distance)")    
+
+#Taking Input
+connections = [tuple(map(int, input().split())) for _ in range(m)]
+  
+
+shortest_paths = floyd(n,m,connections)
+
+print("\nAdjancency Matrix After Algorithm")  
+for row in shortest_paths:
+        for i in row:
+            print(i,end = " ")
+        print() 
+
+x,y = 1 , 1 
+print("\nThe shortest paths are:")
+for row in shortest_paths:
+    for i in row:
+        print("City ",x," -> City",y," the distance is ",i)
+        y+=1
+    print() 
+    y=1
+    x+=1          
+---------------------------------------------------------------------------------------------------
+
+4. Dijkstras Algo --
+
+import heapq
+
+def network_delay_time(n, edges, k):
+    # Build adjacency list
+    graph = {i: [] for i in range(1, n + 1)}
+    for u, v, w in edges:
+        graph[u].append((v, w))
+    
+    # Min-heap for Dijkstra's algorithm
+    min_heap = [(0, k)]  # (time, node)
+    distances = {i: float('inf') for i in range(1, n + 1)}
+    distances[k] = 0  # Distance to the start node is 0
+    parents = {i: None for i in range(1, n + 1)}  # Track the path
+    
+    while min_heap:
+        time, node = heapq.heappop(min_heap)
+        
+        # Skip if we already found a shorter path
+        if time > distances[node]:
+            continue
+        
+        # Relax edges
+        for neighbor, weight in graph[node]:
+            new_time = time + weight
+            if new_time < distances[neighbor]:
+                distances[neighbor] = new_time
+                parents[neighbor] = node
+                heapq.heappush(min_heap, (new_time, neighbor))
+    
+    # Get the maximum time taken to reach any node
+    max_time = max(distances.values())
+    
+    if max_time == float('inf'):
+        return -1, parents
+
+    return max_time, distances, parents
+
+
+def print_paths(n, k, parents, distances):
+    for node in range(1, n + 1):
+        if distances[node] == float('inf'):
+            print(f"Node {node} is not reachable from Node {k}.")
+        else:
+            # Reconstruct path
+            path = []
+            current = node
+            while current is not None:
+                path.append(current)
+                current = parents[current]
+            path.reverse()
+            print(f"Path to Node {node}: {' -> '.join(map(str, path))} with time {distances[node]}")
+
+# Input
+n = int(input("Enter the number of nodes: "))
+m = int(input("Enter the number of edges: "))
+edges = []
+print("Enter edges in the format (u v w):")
+for _ in range(m):
+    u, v, w = map(int, input().split())
+    edges.append((u, v, w))
+k = int(input("Enter the starting node: "))
+
+# Output
+max_time, distances, parents = network_delay_time(n, edges, k)
+if max_time == -1:
+    print("It is impossible for all nodes to receive the signal.")
+else:
+    print("Time to reach all nodes:", max_time)
+    print_paths(n, k, parents, distances)
+              
+---------------------------------------------------------------------------------------------------
+
+5. Knight Tour --
+
+n = int(input("Enter the Size of the chessboard : "))
+
+moves = [(1,2),(2,1),(-1,2),(2,-1),(1,-2),(-2,1),(-1,-2),(-2,-1)]
+
+# Checking if the move is in the board or not
+def is_valid_move(x,y,board):
+    if x>=0 and x<n and y>=0 and y<n and board[x][y] == -1:
+        return True
+    return False
+
+# Solving the problem
+def knight(x,y,board,mc):
+    # Checks if all the moves are completed or not / Base Condition
+    if mc == n*n:
+        return True
+
+    # Try all possible moves
+    for move in moves:
+        nx , ny = x+move[0],y+move[1]
+        
+        if(is_valid_move(nx,ny,board)):
+            board[nx][ny] = mc
+            # Using Recursion
+            if knight(nx,ny,board,mc+1):
+                return True
+                
+            # Backtrack
+            board[nx][ny] = -1
+    return False
+
+
+def print_board(board):
+    for row in board:
+        for cell in row:
+            if cell == -1:
+                print("-1", end = " ")
+            else:
+                print(cell, end = " ")
+        print()
+
+# Initialize the board
+board = [[-1] * n for _ in range(n)]
+
+#print_board(board)
+
+sx , sy = 0 , 0 
+
+board[sx][sy] = 0
+
+
+knight(sx,sy,board,1)
+print_board(board)
+
+
+---------------------------------------------------------------------------------------------------
+6. Club Assignment --
+
+import heapq
+
+def club(cm):
+    n = len(cm)
+    min_heap = [] # Making a priority Queue
+    
+    # initial_state initialization
+    initial_state = [0,0,[-1]*n]
+    
+    # Pushing initial_state into min_heap
+    heapq.heappush(min_heap,initial_state)
+    
+    min_cost = float('inf')
+    best = []
+    
+    while min_heap:
+        # Popping from min_heap
+        current_cost, level, assignment = heapq.heappop(min_heap)
+        
+        # Check for best assignment and all students are assigned or not
+        if level == n:
+            if current_cost<min_cost:
+                min_cost = current_cost
+                best = assignment[:]
+        
+        # Assigning the students       
+        else:
+            for club in range(n):
+                if club not in assignment:
+                    new_assignment = assignment[:]
+                    new_assignment[level] = club
+                    new_cost = current_cost + cm[level][club]
+                    
+                    # Again check that is it the best assignment
+                    if new_cost< min_cost:
+                        heapq.heappush(min_heap,(new_cost,level+1,new_assignment))
+        
+    return min_cost,best
+        
+n = int(input("Enter the Number of Students: "))
+cm = []
+print("Enter the Cost Matrix :\n")
+
+for i in range(n):
+    cm.append(list(map(int , input().split())))
+    
+    
+mc , ass = club(cm)
+x = 1
+print("Minimum cost is ",mc)
+for i in ass:
+    print("The students assigned to ",x," th club is ",i, " and the cost is ",cm[x-1][i])
+    x+=1
